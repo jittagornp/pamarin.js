@@ -22,8 +22,10 @@ define('com.pamarin.core.page.ContextMapping', [
         var CONTEXTAUL_NOTATION = '/**';
         var SLASH = '/';
 
-        function removeQuerystring(url) {
-            return Urls.getPath(url).replace(SLASH, '');
+        function pathOnly(url) {
+            url = Urls.removeSessionId(url);
+            url = Urls.removeQuerystring(url);
+            return url;
         }
 
         return {
@@ -220,10 +222,6 @@ define('com.pamarin.core.page.ContextMapping', [
 
                 var path = arr.join(SLASH);
                 Object.forEachProperty(this.contextMapping_, function(mapping, id) {
-                    if (called) {
-                        return false; //break
-                    }
-
                     var tmpl = PathTemplateParser.parse(path, mapping.pattern);
                     if (!tmpl) {
                         return true; //continue
@@ -239,13 +237,15 @@ define('com.pamarin.core.page.ContextMapping', [
 
                     callback && callback(this.context_);
                     called = true;
+                    
+                    return false;
                 }, this);
 
                 if (!called) {
                     var name = this.findNameByContextaul(arr);
                     if (!name) {
                         arr = arr.slice(0, this.getStartIndex() + this.DEFAULT_SLICE_SIZE_);
-                        name = removeQuerystring(arr.join(SLASH));
+                        name = pathOnly(arr.join(SLASH));
 
                         var tmpl = {stringArray: [name], string: SLASH + name};
                         this.context_ = this.buildContext(
@@ -256,7 +256,7 @@ define('com.pamarin.core.page.ContextMapping', [
                                 );
                     }
 
-                    var foceReload = index === this.startIndex_
+                    var foceReload = index === this.getStartIndex()
                             || name !== this.lastContextName_;
 
                     if (foceReload) {
