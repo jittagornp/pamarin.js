@@ -74,7 +74,7 @@ define('com.pamarin.core.page.ContextMapping', [
             /**/
             buildParam: function(url, pattern) {
                 var param = null;
-                if (!param) {
+                if (!pattern) {
                     var tmpl = PathTemplateParser.parse(url, pattern);
                     if (tmpl) {
                         param = tmpl.param;
