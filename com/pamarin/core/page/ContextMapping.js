@@ -19,8 +19,8 @@ define('com.pamarin.core.page.ContextMapping', [
      */
     var ContextMapping = Class.define(module.id, (function() {
 
-        var CONTEXTAUL_NOTATION = '/**';
         var SLASH = '/';
+        var CONTEXTAUL_NOTATION = SLASH + '**';
 
         function pathOnly(url) {
             url = Urls.removeSessionId(url);
@@ -71,7 +71,7 @@ define('com.pamarin.core.page.ContextMapping', [
                         ? this.parentContext_.getPattern()
                         : '';
 
-                return pattern + '/{' + this.mappingName_ + '}';
+                return pattern + SLASH + '{' + this.mappingName_ + '}';
             },
             /**/
             buildParam: function(url, pattern) {
@@ -237,7 +237,7 @@ define('com.pamarin.core.page.ContextMapping', [
 
                     callback && callback(this.context_);
                     called = true;
-                    
+
                     return false;
                 }, this);
 
