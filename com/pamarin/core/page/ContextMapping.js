@@ -223,7 +223,7 @@ define('com.pamarin.core.page.ContextMapping', [
              * @param {Array[String]} arr
              * @returns {String}
              */
-            findNameByContextaul: function(arr) {
+            findByContextaul: function(arr) {
                 var rs = {};
 
                 var path = arr.join(SLASH);
@@ -245,16 +245,7 @@ define('com.pamarin.core.page.ContextMapping', [
                     }
                 }, this);
 
-                if (rs.id) {
-                    this.context_ = this.buildContext(
-                            rs.id,
-                            rs.name,
-                            rs.mapping,
-                            rs.tmpl
-                            );
-                }
-
-                return rs.name;
+                return rs;
             },
             /** 
              * @param {Number} index
@@ -286,29 +277,39 @@ define('com.pamarin.core.page.ContextMapping', [
                 }, this);
 
                 if (!called) {
-                    var name = this.findNameByContextaul(arr);
-                    if (!name) {
-                        arr = arr.slice(0, this.getStartIndex() + this.DEFAULT_SLICE_SIZE_);
-                        name = pathOnly(arr.join(SLASH));
-
-                        var tmpl = {stringArray: [name], string: SLASH + name};
-                        this.context_ = this.buildContext(
-                                name,
-                                name,
-                                {},
-                                tmpl
-                                );
-                    }
-
-                    var foceReload = index === this.getStartIndex()
-                            || name !== this.lastContextName_;
-
-                    if (foceReload) {
-                        callback && callback(this.context_);
-                    }
-
-                    this.lastContextName_ = name;
+                    this.makeDefault(index, arr, callback);
                 }
+            },
+            /** 
+             * @param {Number} index
+             * @param {Array[String]} arr
+             * @param {Function} callback
+             */
+            makeDefault: function(index, arr, callback) {
+                var obj = this.findByContextaul(arr);
+                if (!obj.name) {
+                    arr = arr.slice(0, this.getStartIndex() + this.DEFAULT_SLICE_SIZE_);
+                    obj.id = pathOnly(arr.join(SLASH));
+                    obj.name = obj.id;
+                    obj.mapping = {};
+                    obj.tmpl = {stringArray: [obj.name], string: SLASH + obj.name};
+                }
+
+                this.context_ = this.buildContext(
+                        obj.id,
+                        obj.name,
+                        obj.mapping,
+                        obj.tmpl
+                        );
+
+                var foceReload = index === this.getStartIndex()
+                        || obj.name !== this.lastContextName_;
+
+                if (foceReload) {
+                    callback && callback(this.context_);
+                }
+
+                this.lastContextName_ = obj.name;
             }
         };
     })());
