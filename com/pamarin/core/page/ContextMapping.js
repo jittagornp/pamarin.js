@@ -253,8 +253,6 @@ define('com.pamarin.core.page.ContextMapping', [
              * @param {Function} callback
              */
             detect: function(index, arr, callback) {
-                var called = false;
-
                 var path = arr.join(SLASH);
                 Object.forEachProperty(this.contextMapping_, function(mapping, id) {
                     var tmpl = PathTemplateParser.parse(path, mapping.pattern);
@@ -271,21 +269,16 @@ define('com.pamarin.core.page.ContextMapping', [
                             );
 
                     callback && callback(this.context_);
-                    called = true;
 
                     return false;
-                }, this);
-
-                if (!called) {
-                    this.makeDefault(index, arr, callback);
-                }
+                }, this) && this.notMatch(index, arr, callback);
             },
             /** 
              * @param {Number} index
              * @param {Array[String]} arr
              * @param {Function} callback
              */
-            makeDefault: function(index, arr, callback) {
+            notMatch: function(index, arr, callback) {
                 var obj = this.findByContextaul(arr);
                 if (!obj.name) {
                     arr = arr.slice(0, this.getStartIndex() + this.DEFAULT_SLICE_SIZE_);
