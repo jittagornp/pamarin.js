@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>editor</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script src="Editor.js"></script>
+        <style>
+            *{
+                outline: none;
+                font-family: arial;
+            }
+            
+            .editor-button{
+                border : solid 1px rgb(214, 214, 214);
+            }
+        </style>
+        <script type="text/javascript">
+            Library.onDomLoaded(function() {
+                Editors.allTextAreas();
+            });
+        </script>
+    </head>
+    <body>
+        <textarea style="width: 590px;"></textarea>
+    </body>
+</html>

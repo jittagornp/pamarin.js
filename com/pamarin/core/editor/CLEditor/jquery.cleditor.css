@@ -1,0 +1,190 @@
+.cleditorMain {
+    border:1px solid #ccc; 
+    /*padding:0 1px 1px;*/ 
+    background-color:white;
+    position :relative;
+    border-radius: 3px;
+}
+
+.cleditorMain iframe {
+    border:none; 
+    margin:0; 
+    padding:0
+}
+
+.cleditorMain textarea {
+    border:none; 
+    margin:0; 
+    padding:0; 
+    overflow-y:scroll; 
+    font:10pt Arial,Verdana; 
+    resize:none; 
+    outline:none /* webkit grip focus */
+}
+
+.cleditorToolbar {
+    /*background: url('images/toolbar.gif') repeat*/
+    background : #fff;
+    border: 1px solid #3297fd;
+    padding : 5px;
+    display: none;
+    margin-top : -92px;
+    height: 70px !important;
+    z-index: 10000;
+    position: absolute;
+    margin-left: -1px;
+
+}
+
+.cleditor-toolbar-close{
+    width: 16px;
+    height: 16px;
+    background: url('images/cleditor-toolbar-close.png') no-repeat;
+    position: absolute;
+    top : 10px;
+    right: 10px;
+}
+
+.cleditor-toolbar-close:hover{
+    cursor: pointer;
+}
+
+.cleditor-toolbar-tail{
+    width : 32px;
+    height : 10px;
+    background: url('images/cleditor-toolbar-tail.png') no-repeat;
+    position: absolute;
+    bottom : 0px;
+    left : 10px;
+    margin-bottom: -8px;
+}
+
+.cleditor-prepend-toolbar{
+    width : 100%;
+    height : 10px;
+    position: relative;
+    bottom: 0px;
+}
+
+/*
+.cleditorParent:hover .cleditorToolbar{
+    display: block;
+}
+*/
+
+.cleditorPopup{
+    display: none;
+}
+
+.cleditor-hide{
+    display: none !important;
+}
+
+.cleditorGroup {
+    float:left; 
+    height:34px;
+    margin-bottom: 3px;     
+}
+
+.cleditorButton {
+    border : solid 1px #fff;	
+    margin-right: 3px;
+    float:left; 
+    width:32px; 
+    height:32px; 
+    background: url('images/buttons.png');
+    border-radius : 2px;
+    -moz-border-radius : 2px;
+    -webkit-border-radius : 2px;
+}
+
+.cleditorButton:hover{
+    background-color : #f5f5f5 !important;
+    border-color : #ddd;	
+}
+
+.cleditorButton:active{
+    background-color: #ececec !important;
+}
+
+.cleditorDisabled {
+    opacity:0.3; 
+    filter:alpha(opacity=30)
+}
+
+.cleditorDivider {
+    float:left; 
+    width:1px; 
+    height:23px; 
+    margin:1px 0 1px 0; 
+    background:#fff;
+}
+
+.cleditorPopup {
+    border:solid 1px #3297fd; 
+    background-color:white; 
+    color:#333333; 
+    position:absolute; 
+    font:10pt Arial,Verdana; 
+    cursor:default; 
+    z-index:10000;
+    margin-top : 5px;    
+}
+
+.cleditorList div {
+    padding:2px 4px 2px 4px
+}
+
+.cleditorList > div:hover{
+    background: #3297fd !important;
+    color : #fff;
+}
+
+.cleditorList p,
+.cleditorList h1,
+.cleditorList h2,
+.cleditorList h3,
+.cleditorList h4,
+.cleditorList h5,
+.cleditorList h6,
+.cleditorList font {
+    padding:0; 
+    margin:0; 
+    background-color:Transparent
+}
+
+.cleditorColor {
+    width:190px; 
+    padding:1px 0 0 1px;
+    height : 19px;    
+}
+
+.cleditorColor div {
+    float:left; 
+    width:14px; 
+    height:14px;
+    margin:0 1px 1px 0;
+    border : solid 2px #fff;    
+}
+
+.cleditorColor div:hover{
+    border-color : red;
+}
+
+.cleditorPrompt {
+    background-color:#F6F7F9; 
+    padding:4px; 
+    font-size:8.5pt
+}
+
+.cleditorPrompt input,
+.cleditorPrompt textarea {
+    font:8.5pt Arial,Verdana;
+}
+
+.cleditorMsg {
+    background-color:#FDFCEE; 
+    width:150px; 
+    padding:4px; 
+    font-size:8.5pt
+}

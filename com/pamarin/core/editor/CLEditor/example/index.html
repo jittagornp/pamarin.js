@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>pamarin editor</title>
+        <link href="../jquery.cleditor.css" rel="stylesheet"/>
+        <script src="../jquery.js"></script>
+        <script src="../jquery.cleditor.js"></script>
+        <style>
+            *{
+                outline: none;
+            }
+        </style>
+        <script>
+            $(document).ready(function() {
+                $("#input").cleditor();
+                $("#input2").cleditor();
+            });
+        </script>
+    </head>
+    <body>
+        <h1>pamarin editor</h1>
+        <div style="width: 590px; margin-top: 100px;">
+            <textarea id="input" name="input"></textarea>
+        </div>
+        <div style="width: 590px;">
+            <textarea id="input2" name="input"></textarea>
+        </div>
+    </body>
+</html>
