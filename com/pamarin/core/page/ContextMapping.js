@@ -123,6 +123,10 @@ define('com.pamarin.core.page.ContextMapping', [
              * @returns {Array}
              */
             toArray: function(map, qstr, filter, ctx_opt) {
+                if (!qstr) {
+                    qstr = [];
+                }
+
                 map.forEachEntry(function(val, key) {
                     if (filter.call(ctx_opt, val, key)) {
                         var obj = {};
@@ -131,6 +135,8 @@ define('com.pamarin.core.page.ContextMapping', [
                         qstr.push(obj);
                     }
                 });
+
+                return qstr;
             },
             /**
              * @param {Array[Object]} qstr
@@ -143,16 +149,15 @@ define('com.pamarin.core.page.ContextMapping', [
 
                 var map = this.parentContext_.getQuerystringMap();
                 if (map) {
-                    if (qstr) {
-                        this.toArray(map, qstr, function(val, key) {
-                            return !this.foundByKey(qstr, key);
-                        }, this);
-                    } else {
-                        qstr = [];
-                        this.toArray(map, qstr, function(val, key) {
-                            return true;
-                        });
-                    }
+                    var filter = qstr
+                            ? (function(val, key) {
+                                return !this.foundByKey(qstr, key);
+                            })
+                            : (function() {
+                                return true;
+                            });
+
+                    qstr = this.toArray(map, qstr, filter, this);
                 }
 
                 return qstr;
