@@ -21,6 +21,7 @@ define('com.pamarin.core.page.ContextMapping', [
 
         var SLASH = '/';
         var CONTEXTAUL_NOTATION = SLASH + '**';
+        var EMPTY_STRING = '';
 
         function pathOnly(url) {
             url = Urls.removeSessionId(url);
@@ -69,7 +70,7 @@ define('com.pamarin.core.page.ContextMapping', [
                 var pattern = this.parentContext_
                         && this.parentContext_.getPattern()
                         ? this.parentContext_.getPattern()
-                        : '';
+                        : EMPTY_STRING;
 
                 return pattern + SLASH + '{' + this.mappingName_ + '}';
             },
@@ -92,15 +93,15 @@ define('com.pamarin.core.page.ContextMapping', [
                 });
             },
             /**/
-            toArray: function(map, qstr, filter) {
+            toArray: function(map, qstr, filter, ctx_opt) {
                 map.forEachEntry(function(val, key) {
-                    if (filter(val, key)) {
+                    if (filter.call(ctx_opt, val, key)) {
                         var obj = {};
                         obj[key] = val;
-
+                        
                         qstr.push(obj);
                     }
-                }, this);
+                });
             },
             /**/
             mergeQuerystring: function(qstr) {
@@ -113,7 +114,7 @@ define('com.pamarin.core.page.ContextMapping', [
                     if (qstr) {
                         this.toArray(map, qstr, function(val, key) {
                             return !this.findByKey(qstr, key);
-                        });
+                        }, this);
                     } else {
                         qstr = [];
                         this.toArray(map, qstr, function(val, key) {
