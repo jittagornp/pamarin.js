@@ -65,12 +65,16 @@ define('com.pamarin.core.page.ContextMapping', [
              * @returns {String}
              */
             toContextName: function(template, mapping) {
+                return this.buildUrl(template, mapping);
+            },
+            /**/
+            buildUrl: function(template, mapping, start_opt) {
                 var start = mapping.offset || this.getStartIndex();
                 var end = start + (mapping.slice || this.DEFAULT_SLICE_SIZE_);
 
                 return template
                         .stringArray
-                        .slice(start, end)
+                        .slice(start_opt || start, end)
                         .join(SLASH);
             },
             /**
@@ -176,28 +180,22 @@ define('com.pamarin.core.page.ContextMapping', [
                     child = Namespace.getValue(child.reference, this.contextMapping_);
                 }
 
-                var start = mapping.offset || this.getStartIndex();
-                var end = mapping.slice || this.DEFAULT_SLICE_SIZE_;
-
-                var url = Urls.getPath(template.stringArray
-                        .slice(0, start + end)
-                        .join(SLASH));
-
+                var contextPath = this.buildUrl(template, mapping, 0);
                 var pattern = this.buildPattern(mapping);
                 var param = template.param
                         ? template.param
-                        : this.buildParam(url, pattern);
+                        : this.buildParam(contextPath, pattern);
 
                 return ContextBuilder.buildFromId(id)
                         .andName(name)
                         .andPattern(pattern)
-                        .andOffset(start)
-                        .andSlice(end)
+                        .andOffset(mapping.offset || this.getStartIndex())
+                        .andSlice(mapping.slice || this.DEFAULT_SLICE_SIZE_)
                         .andParam(param)
                         .andQuerystring(this.mergeQuerystring(mapping.querystring))
                         .andUriPath(Urls.getPath(template.string))
                         .andAdditionalParam(mapping.additionalParam)
-                        .andContextPath(url)
+                        .andContextPath(contextPath)
                         .andChildContext(child)
                         .build();
             },
@@ -254,31 +252,36 @@ define('com.pamarin.core.page.ContextMapping', [
              */
             detect: function(index, arr, callback) {
                 var path = arr.join(SLASH);
-                Object.forEachProperty(this.contextMapping_, function(mapping, id) {
-                    var tmpl = PathTemplateParser.parse(path, mapping.pattern);
-                    if (!tmpl) {
-                        return true; //continue
-                    }
+                var notFound = Object.forEachProperty(this.contextMapping_,
+                        function(mapping, id) {
+                            var tmpl = PathTemplateParser.parse(path, mapping.pattern);
+                            if (!tmpl) {
+                                return true; //continue
+                            }
 
-                    this.lastContextName_ = this.toContextName(tmpl, mapping);
-                    this.context_ = this.buildContext(
-                            id,
-                            this.lastContextName_,
-                            mapping,
-                            tmpl
-                            );
+                            this.lastContextName_ = this.toContextName(tmpl, mapping);
+                            this.context_ = this.buildContext(
+                                    id,
+                                    this.lastContextName_,
+                                    mapping,
+                                    tmpl
+                                    );
 
-                    callback && callback(this.context_);
+                            callback && callback(this.context_);
+                            return false;
+                            
+                        }, this);
 
-                    return false;
-                }, this) && this.notMatch(index, arr, callback);
+                if (notFound) {
+                    this.otherDetect(index, arr, callback);
+                }
             },
             /** 
              * @param {Number} index
              * @param {Array[String]} arr
              * @param {Function} callback
              */
-            notMatch: function(index, arr, callback) {
+            otherDetect: function(index, arr, callback) {
                 var obj = this.findByContextaul(arr);
                 if (!obj.name) {
                     arr = arr.slice(0, this.getStartIndex() + this.DEFAULT_SLICE_SIZE_);
