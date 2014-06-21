@@ -67,7 +67,12 @@ define('com.pamarin.core.page.ContextMapping', [
             toContextName: function(template, mapping) {
                 return this.buildUrl(template, mapping);
             },
-            /**/
+            /**
+             * @param {Object} template
+             * @param {Object} mapping
+             * @param {Number} start_opt 
+             * @returns {String}
+             */
             buildUrl: function(template, mapping, start_opt) {
                 var start = mapping.offset || this.getStartIndex();
                 var end = start + (mapping.slice || this.DEFAULT_SLICE_SIZE_);
@@ -216,6 +221,15 @@ define('com.pamarin.core.page.ContextMapping', [
                 return this.context_;
             },
             /**
+             * @param {String} pattern
+             * @returns {String}
+             */
+            addContextaul: function(pattern) {
+                return StringUtils.endsWith(pattern, CONTEXTAUL_NOTATION)
+                        ? pattern
+                        : pattern + CONTEXTAUL_NOTATION;
+            },
+            /**
              * @private
              * 
              * @param {Array[String]} arr
@@ -225,23 +239,20 @@ define('com.pamarin.core.page.ContextMapping', [
                 var rs = {};
 
                 var path = arr.join(SLASH);
-                Object.forEachProperty(this.contextMapping_, function(mapping, id) {
-                    var pattern = StringUtils.endsWith(mapping.pattern, CONTEXTAUL_NOTATION)
-                            ? mapping.pattern
-                            : mapping.pattern + CONTEXTAUL_NOTATION;
+                Object.forEachProperty(this.contextMapping_,
+                        function(mapping, id) {
+                            var tmpl = PathTemplateParser.parse(path, addContextaul(mapping.pattern));
+                            if (!tmpl) {
+                                return true; //continue
+                            }
 
-                    var tmpl = PathTemplateParser.parse(path, pattern);
-                    if (!tmpl) {
-                        return true; //continue
-                    }
-
-                    if (!rs.tmpl || rs.tmpl.format.length < tmpl.format.length) {
-                        rs.id = id;
-                        rs.tmpl = tmpl;
-                        rs.mapping = mapping;
-                        rs.name = this.toContextName(rs.tmpl, rs.mapping);
-                    }
-                }, this);
+                            if (!rs.tmpl || rs.tmpl.format.length < tmpl.format.length) {
+                                rs.id = id;
+                                rs.tmpl = tmpl;
+                                rs.mapping = mapping;
+                                rs.name = this.toContextName(rs.tmpl, rs.mapping);
+                            }
+                        }, this);
 
                 return rs;
             },
@@ -269,7 +280,7 @@ define('com.pamarin.core.page.ContextMapping', [
 
                             callback && callback(this.context_);
                             return false;
-                            
+
                         }, this);
 
                 if (notFound) {
