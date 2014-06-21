@@ -237,23 +237,22 @@ define('com.pamarin.core.page.ContextMapping', [
              */
             findByContextaul: function(arr) {
                 var rs = {};
-
                 var path = arr.join(SLASH);
-                Object.forEachProperty(this.contextMapping_,
-                        function(mapping, id) {
-                            var tmpl = PathTemplateParser.parse(path, addContextaul(mapping.pattern));
-                            if (!tmpl) {
-                                return true; //continue
-                            }
+                var fn = function(mapping, id) {
+                    var tmpl = PathTemplateParser.parse(path, addContextaul(mapping.pattern));
+                    if (!tmpl) {
+                        return true; //continue
+                    }
 
-                            if (!rs.tmpl || rs.tmpl.format.length < tmpl.format.length) {
-                                rs.id = id;
-                                rs.tmpl = tmpl;
-                                rs.mapping = mapping;
-                                rs.name = this.toContextName(rs.tmpl, rs.mapping);
-                            }
-                        }, this);
+                    if (!rs.tmpl || rs.tmpl.format.length < tmpl.format.length) {
+                        rs.id = id;
+                        rs.tmpl = tmpl;
+                        rs.mapping = mapping;
+                        rs.name = this.toContextName(rs.tmpl, rs.mapping);
+                    }
+                };
 
+                Object.forEachProperty(this.contextMapping_,fn, this);
                 return rs;
             },
             /** 
@@ -263,27 +262,26 @@ define('com.pamarin.core.page.ContextMapping', [
              */
             detect: function(index, arr, callback) {
                 var path = arr.join(SLASH);
-                var notFound = Object.forEachProperty(this.contextMapping_,
-                        function(mapping, id) {
-                            var tmpl = PathTemplateParser.parse(path, mapping.pattern);
-                            if (!tmpl) {
-                                return true; //continue
-                            }
+                var fn = function(mapping, id) {
+                    var tmpl = PathTemplateParser.parse(path, mapping.pattern);
+                    if (!tmpl) {
+                        return true; //continue
+                    }
 
-                            this.lastContextName_ = this.toContextName(tmpl, mapping);
-                            this.context_ = this.buildContext(
-                                    id,
-                                    this.lastContextName_,
-                                    mapping,
-                                    tmpl
-                                    );
+                    this.lastContextName_ = this.toContextName(tmpl, mapping);
+                    this.context_ = this.buildContext(
+                            id,
+                            this.lastContextName_,
+                            mapping,
+                            tmpl
+                            );
 
-                            callback && callback(this.context_);
-                            return false;
+                    callback && callback(this.context_);
+                    return false;
 
-                        }, this);
+                };
 
-                if (notFound) {
+                if (Object.forEachProperty(this.contextMapping_, fn, this)) {
                     this.otherDetect(index, arr, callback);
                 }
             },
