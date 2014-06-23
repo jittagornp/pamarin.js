@@ -75,8 +75,13 @@ define('com.pamarin.core.page.ContextMapping', [
              * @returns {String}
              */
             buildUrl: function(template, mapping, start_opt, end_opt) {
-                var start = Types.isNumber(start_opt) ? start_opt : this.toMappingOffset(mapping.offset);
-                var end = Types.isNumber(end_opt) ? end_opt : (start + this.toMappingSlice(mapping.slice));
+                var start = Types.isNumber(start_opt)
+                        ? start_opt
+                        : this.toMappingOffset(mapping.offset);
+
+                var end = Types.isNumber(end_opt)
+                        ? end_opt
+                        : (start + this.toMappingSlice(mapping.slice));
 
                 return template
                         .stringArray
