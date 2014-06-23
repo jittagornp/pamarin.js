@@ -7,8 +7,9 @@ define('com.pamarin.core.page.ContextMappingAdapter', [
     'com.pamarin.core.lang.Class',
     'com.pamarin.core.lang.Object',
     'com.pamarin.core.page.ContextMapping',
-    'com.pamarin.core.util.StringUtils'
-], function(module, Class, Object, ContextMapping, StringUtils) {
+    'com.pamarin.core.util.StringUtils',
+    'com.pamarin.core.util.Urls'
+], function(module, Class, Object, ContextMapping, StringUtils, Urls) {
 
     /**
      * @class ContextMappingAdapter
@@ -27,14 +28,16 @@ define('com.pamarin.core.page.ContextMappingAdapter', [
                 mapped_: false
             },
             /**
-             * @param {type} settings = {
+             * @param {Object} settings = {
              *      name : '',
-             *      parentContext : {},
+             *      parentContext : {}, //ContextBean
              *      context : {},
              *      childContextAttribute : ''
              * };
              */
             constructor: function(settings) {
+                this.currentPath_ = settings.currentPath || Urls.getPathArray();
+
                 this.__super__.constructor.call(
                         this,
                         settings.name,
@@ -43,18 +46,21 @@ define('com.pamarin.core.page.ContextMappingAdapter', [
                         this.indexChanged_
                         );
             },
-            /**/
+            /**
+             * @param {ContextBean} parentContext
+             * @param {Object} context
+             * @returns {Object}
+             */
             toContext: function(parentContext, context) {
                 if (parentContext) {
                     this.parentContext_ = parentContext;
                     context = parentContext.getChildContext();
+
                     if (context) {
                         context = context.mapping;
                     }
 
                     this.indexChanged_ = parentContext.getOffset() + parentContext.getSlice();
-                    this.currentPath_ = StringUtils.split(parentContext.getUriPath(), SLASH);
-
                     if (!this.currentPath_[this.indexChanged_]) {
                         this.currentPath_[this.indexChanged_] = this.DEFAULT_CONTEXT_NAME_;
                     }
@@ -62,28 +68,58 @@ define('com.pamarin.core.page.ContextMappingAdapter', [
 
                 return this.transformContextMapping(context);
             },
-            /**/
+            /**
+             * @param {Number} index
+             * @param {Array[String]} pathArray
+             */
             trigChange: function(index, pathArray) {
-                this.detect(this.indexChanged_ || index, this.currentPath_ || pathArray, this.reloadContext);
+                index = this.indexChanged_ || index;
+                pathArray = this.currentPath_ || pathArray;
+
+                this.detect(index, pathArray, this.reloadContext);
                 this.indexChanged_ = null;
                 this.currentPath_ = null;
             },
-            /**/
+            /**
+             * @param {Number} slice
+             * @param {String} pattern
+             * @returns {Number}
+             */
             toSlice: function(slice, pattern) {
                 return slice || StringUtils.split(pattern, SLASH).length;
             },
-            /**/
+            /**
+             * @param {String} pattern
+             * @returns {String}
+             */
             toPattern: function(pattern) {
                 if (this.parentContext_ === null) {
                     return pattern;
                 }
 
-                var startsWith = StringUtils.startsWith(pattern, this.parentContext_.getPattern())
-                return startsWith ? pattern : this.parentContext_.getPattern() + pattern;
+                var startsWith = StringUtils.startsWith(pattern, this.parentContext_.getPattern());
+                return startsWith
+                        ? pattern :
+                        this.parentContext_.getPattern() + pattern;
             },
-            /**/
+            /**
+             * @param {Object} mapping
+             * @returns {Object}
+             */
+            cloneMapping: function(mapping) {
+                var newMap = {};
+                Object.forEachProperty(mapping, function(val, key) {
+                    newMap[key] = Object.clone(val);
+                });
+
+                return newMap;
+            },
+            /**
+             * @param {Object} mapping
+             * @returns {Object}
+             */
             transformContextMapping: function(mapping) {
-                mapping = Object.clone(mapping);
+                mapping = this.cloneMapping(mapping);
                 Object.forEachProperty(mapping, function(map) {
                     map.slice = this.toSlice(map.slice, map.pattern);
                     map.pattern = this.toPattern(map.pattern);
