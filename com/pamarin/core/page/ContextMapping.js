@@ -300,10 +300,10 @@ define('com.pamarin.core.page.ContextMapping', [
                         rs.id = id;
                         rs.tmpl = tmpl;
                         rs.mapping = mapping;
-                        rs.name = this.buildContextName(rs.tmpl, rs.mapping);
                     }
                 }, this.addContextaul);
-
+                
+                rs.name = this.buildContextName(rs.tmpl, rs.mapping);
                 return rs;
             },
             /**
