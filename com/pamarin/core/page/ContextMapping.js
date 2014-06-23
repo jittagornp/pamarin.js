@@ -66,12 +66,7 @@ define('com.pamarin.core.page.ContextMapping', [
              * @returns {String}
              */
             buildContextName: function(template, mapping) {
-                var name = this.buildFullContextPath(template, mapping);
-                if (name && name[0] !== SLASH) {
-                    name = SLASH + name;
-                }
-
-                return name;
+                return this.buildFullContextPath(template, mapping);
             },
             /**
              * @param {Object} template
@@ -80,11 +75,8 @@ define('com.pamarin.core.page.ContextMapping', [
              * @returns {String}
              */
             buildUrl: function(template, mapping, start_opt, end_opt) {
-                var start = this.toMappingOffset(mapping.offset);
-                var end = start + this.toMappingSlice(mapping.slice);
-
-                start = Types.isNumber(start_opt) ? start_opt : start;
-                end = Types.isNumber(end_opt) ? end_opt : end;
+                var start = Types.isNumber(start_opt) ? start_opt : this.toMappingOffset(mapping.offset);
+                var end = Types.isNumber(end_opt) ? end_opt : (start + this.toMappingSlice(mapping.slice));
 
                 return template
                         .stringArray
