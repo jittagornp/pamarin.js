@@ -65,8 +65,13 @@ define('com.pamarin.core.page.ContextMapping', [
              * @param {Object} mapping
              * @returns {String}
              */
-            toContextName: function(template, mapping) {
-                return this.buildUrl(template, mapping);
+            buildContextName: function(template, mapping) {
+                var name = this.buildFullContextPath(template, mapping);
+                if (name && name[0] !== SLASH) {
+                    name = SLASH + name;
+                }
+
+                return name;
             },
             /**
              * @param {Object} template
@@ -199,6 +204,12 @@ define('com.pamarin.core.page.ContextMapping', [
             buildFullContextPath: function(template, mapping) {
                 return SLASH + this.buildUrl(template, mapping, 0);
             },
+            /**/
+            buildName: function(name, offset, slice) {
+                var arr = StringUtils.split(name, SLASH);
+                arr = arr.slice(offset, offset + slice);
+                return arr.join(SLASH);
+            },
             /**
              * @param {String} id
              * @param {String} name
@@ -216,14 +227,14 @@ define('com.pamarin.core.page.ContextMapping', [
                 var offset = this.toMappingOffset(mapping.offset);
                 var slice = this.toMappingSlice(mapping.slice);
 
+                var fullContextPath = name;
                 var contextPath = this.buildContextPath(template, mapping, offset, slice);
-                var fullContextPath = this.buildFullContextPath(template, mapping);
-
                 var pattern = this.buildPattern(mapping);
-                var param = this.buildParam(template.param, fullContextPath, pattern);
+                var param = this.buildParam(template.param, name, pattern);
                 var qstr = this.mergeQuerystring(mapping.querystring);
+                name = this.buildName(name, offset, slice);
 
-                return ContextBuilder.buildFromId(id)
+                return ContextBuilder.buildContext(id)
                         .andName(name)
                         .andPattern(pattern)
                         .andOffset(offset)
@@ -236,13 +247,23 @@ define('com.pamarin.core.page.ContextMapping', [
                         .andChildContext(child)
                         .build();
             },
-            /**/
+            /**
+             * @param {Number offset
+             * @returns {Number}
+             */
             toMappingOffset: function(offset) {
-                return Types.isNumber(offset) ? offset : this.getStartIndex();
+                return Types.isNumber(offset)
+                        ? offset
+                        : this.getStartIndex();
             },
-            /**/
+            /**
+             * @param {Number} slice
+             * @returns {Number}
+             */
             toMappingSlice: function(slice) {
-                return Types.isNumber(slice) ? slice : this.DEFAULT_SLICE_SIZE_;
+                return Types.isNumber(slice)
+                        ? slice
+                        : this.DEFAULT_SLICE_SIZE_;
             },
             /**
              * @returns {Number}
@@ -282,13 +303,17 @@ define('com.pamarin.core.page.ContextMapping', [
                         rs.id = id;
                         rs.tmpl = tmpl;
                         rs.mapping = mapping;
-                        rs.name = this.toContextName(rs.tmpl, rs.mapping);
+                        rs.name = this.buildContextName(rs.tmpl, rs.mapping);
                     }
                 }, this.addContextaul);
 
                 return rs;
             },
-            /**/
+            /**
+             * @param {Array[String]} arr
+             * @param {Function} fn
+             * @param {Function} filter
+             */
             contextWalking: function(arr, fn, filter) {
                 var path = arr.join(SLASH);
                 filter = filter || function(pattern) {
@@ -311,7 +336,7 @@ define('com.pamarin.core.page.ContextMapping', [
              */
             detect: function(index, arr, callback) {
                 var fail = this.contextWalking(arr, function(tmpl, mapping, id) {
-                    this.lastContextName_ = this.toContextName(tmpl, mapping);
+                    this.lastContextName_ = this.buildContextName(tmpl, mapping);
                     this.context_ = this.buildContext(
                             id,
                             this.lastContextName_,
@@ -337,7 +362,7 @@ define('com.pamarin.core.page.ContextMapping', [
                 if (!obj.name) {
                     arr = arr.slice(0, this.getStartIndex() + this.DEFAULT_SLICE_SIZE_);
                     obj.id = pathOnly(arr.join(SLASH));
-                    obj.name = obj.id;
+                    obj.name = obj.id[0] === SLASH ? obj.id : SLASH + obj.id;
                     obj.mapping = {};
                     obj.tmpl = {stringArray: arr, string: SLASH + obj.name};
                 }
