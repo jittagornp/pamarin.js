@@ -10,9 +10,10 @@ define('com.pamarin.core.page.ContextMapping', [
     'com.pamarin.core.util.StringUtils',
     'com.pamarin.core.util.PathTemplateParser',
     'com.pamarin.core.util.Urls',
+    'com.pamarin.core.util.Types',
     'com.pamarin.core.creational.Namespace',
     'com.pamarin.core.page.ContextBuilder'
-], function(module, Class, Object, Array, StringUtils, PathTemplateParser, Urls, Namespace, ContextBuilder) {
+], function(module, Class, Object, Array, StringUtils, PathTemplateParser, Urls, Types, Namespace, ContextBuilder) {
 
     /**
      * @class ContextMapping
@@ -73,13 +74,16 @@ define('com.pamarin.core.page.ContextMapping', [
              * @param {Number} start_opt 
              * @returns {String}
              */
-            buildUrl: function(template, mapping, start_opt) {
-                var start = mapping.offset || this.getStartIndex();
-                var end = start + (mapping.slice || this.DEFAULT_SLICE_SIZE_);
+            buildUrl: function(template, mapping, start_opt, end_opt) {
+                var start = this.toMappingOffset(mapping.offset);
+                var end = start + this.toMappingSlice(mapping.slice);
+
+                start = Types.isNumber(start_opt) ? start_opt : start;
+                end = Types.isNumber(end_opt) ? end_opt : end;
 
                 return template
                         .stringArray
-                        .slice(start_opt || start, end)
+                        .slice(start, end)
                         .join(SLASH);
             },
             /**
@@ -103,7 +107,11 @@ define('com.pamarin.core.page.ContextMapping', [
              * @param {String} pattern
              * @returns {Object}
              */
-            buildParam: function(url, pattern) {
+            buildParam: function(param, url, pattern) {
+                if (!Object.isEmpty(param)) {
+                    return param;
+                }
+
                 var param = null;
                 if (pattern) {
                     var tmpl = PathTemplateParser.parse(url, pattern);
@@ -172,6 +180,26 @@ define('com.pamarin.core.page.ContextMapping', [
                 return qstr;
             },
             /**
+             * @param {Object} template
+             * @param {Object} mapping
+             * @param {Number} offset
+             * @param {Number} slice
+             * @returns {String}
+             */
+            buildContextPath: function(template, mapping, offset, slice) {
+                var start_opt = this.parentContext_ ? this.parentContext_.getOffset() : undefined;
+                var end_opt = offset + slice;
+                return SLASH + this.buildUrl(template, mapping, start_opt, end_opt);
+            },
+            /**
+             * @param {Object} template
+             * @param {Object} mapping
+             * @returns {String}
+             */
+            buildFullContextPath: function(template, mapping) {
+                return SLASH + this.buildUrl(template, mapping, 0);
+            },
+            /**
              * @param {String} id
              * @param {String} name
              * @param {Object} mapping
@@ -185,24 +213,36 @@ define('com.pamarin.core.page.ContextMapping', [
                     child = Namespace.getValue(child.reference, this.contextMapping_);
                 }
 
-                var contextPath = this.buildUrl(template, mapping, 0);
+                var offset = this.toMappingOffset(mapping.offset);
+                var slice = this.toMappingSlice(mapping.slice);
+
+                var contextPath = this.buildContextPath(template, mapping, offset, slice);
+                var fullContextPath = this.buildFullContextPath(template, mapping);
+
                 var pattern = this.buildPattern(mapping);
-                var param = template.param
-                        ? template.param
-                        : this.buildParam(contextPath, pattern);
+                var param = this.buildParam(template.param, fullContextPath, pattern);
+                var qstr = this.mergeQuerystring(mapping.querystring);
 
                 return ContextBuilder.buildFromId(id)
                         .andName(name)
                         .andPattern(pattern)
-                        .andOffset(mapping.offset || this.getStartIndex())
-                        .andSlice(mapping.slice || this.DEFAULT_SLICE_SIZE_)
+                        .andOffset(offset)
+                        .andSlice(slice)
                         .andParam(param)
-                        .andQuerystring(this.mergeQuerystring(mapping.querystring))
-                        .andUriPath(Urls.getPath(template.string))
+                        .andQuerystring(qstr)
+                        .andFullContextPath(fullContextPath) //TODO
                         .andAdditionalParam(mapping.additionalParam)
                         .andContextPath(contextPath)
                         .andChildContext(child)
                         .build();
+            },
+            /**/
+            toMappingOffset: function(offset) {
+                return Types.isNumber(offset) ? offset : this.getStartIndex();
+            },
+            /**/
+            toMappingSlice: function(slice) {
+                return Types.isNumber(slice) ? slice : this.DEFAULT_SLICE_SIZE_;
             },
             /**
              * @returns {Number}
@@ -237,23 +277,32 @@ define('com.pamarin.core.page.ContextMapping', [
              */
             findByContextaul: function(arr) {
                 var rs = {};
-                var path = arr.join(SLASH);
-                var fn = function(mapping, id) {
-                    var tmpl = PathTemplateParser.parse(path, addContextaul(mapping.pattern));
-                    if (!tmpl) {
-                        return true; //continue
-                    }
-
+                this.contextWalking(arr, function(tmpl, mapping, id) {
                     if (!rs.tmpl || rs.tmpl.format.length < tmpl.format.length) {
                         rs.id = id;
                         rs.tmpl = tmpl;
                         rs.mapping = mapping;
                         rs.name = this.toContextName(rs.tmpl, rs.mapping);
                     }
+                }, this.addContextaul);
+
+                return rs;
+            },
+            /**/
+            contextWalking: function(arr, fn, filter) {
+                var path = arr.join(SLASH);
+                filter = filter || function(pattern) {
+                    return pattern;
                 };
 
-                Object.forEachProperty(this.contextMapping_,fn, this);
-                return rs;
+                return Object.forEachProperty(this.contextMapping_, function(mapping, id) {
+                    var tmpl = PathTemplateParser.parse(path, filter(mapping.pattern));
+                    if (!tmpl) {
+                        return true; //continue
+                    }
+
+                    return fn.call(this, tmpl, mapping, id);
+                }, this);
             },
             /** 
              * @param {Number} index
@@ -261,13 +310,7 @@ define('com.pamarin.core.page.ContextMapping', [
              * @param {Function} callback
              */
             detect: function(index, arr, callback) {
-                var path = arr.join(SLASH);
-                var fn = function(mapping, id) {
-                    var tmpl = PathTemplateParser.parse(path, mapping.pattern);
-                    if (!tmpl) {
-                        return true; //continue
-                    }
-
+                var fail = this.contextWalking(arr, function(tmpl, mapping, id) {
                     this.lastContextName_ = this.toContextName(tmpl, mapping);
                     this.context_ = this.buildContext(
                             id,
@@ -278,10 +321,9 @@ define('com.pamarin.core.page.ContextMapping', [
 
                     callback && callback(this.context_);
                     return false;
+                });
 
-                };
-
-                if (Object.forEachProperty(this.contextMapping_, fn, this)) {
+                if (fail) {
                     this.otherDetect(index, arr, callback);
                 }
             },
@@ -297,7 +339,7 @@ define('com.pamarin.core.page.ContextMapping', [
                     obj.id = pathOnly(arr.join(SLASH));
                     obj.name = obj.id;
                     obj.mapping = {};
-                    obj.tmpl = {stringArray: [obj.name], string: SLASH + obj.name};
+                    obj.tmpl = {stringArray: arr, string: SLASH + obj.name};
                 }
 
                 this.context_ = this.buildContext(
