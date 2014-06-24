@@ -18,7 +18,7 @@ define('com.pamarin.core.page.ContextMapping', [
     /**
      * @class ContextMapping
      */
-    var ContextMapping = Class.define(module.id, (function() {
+    var ContextMapping = Class.define(module.id, (function(location) {
 
         var SLASH = '/';
         var CONTEXTAUL_NOTATION = SLASH + '**';
@@ -32,6 +32,15 @@ define('com.pamarin.core.page.ContextMapping', [
             url = Urls.removeSessionId(url);
             url = Urls.removeQuerystring(url);
             return url;
+        }
+
+        /**
+         * @param {Array[String]} arr
+         * @returns {Array[String]}
+         */
+        function pathArrayOnly(arr) {
+            var path = pathOnly(arr.join(SLASH));
+            return StringUtils.split(path, SLASH);
         }
 
         return {
@@ -244,7 +253,7 @@ define('com.pamarin.core.page.ContextMapping', [
                         .andSlice(slice)
                         .andParam(param)
                         .andQuerystring(qstr)
-                        .andFullContextPath(fullContextPath) //TODO
+                        .andFullContextPath(fullContextPath)
                         .andAdditionalParam(mapping.additionalParam)
                         .andContextPath(contextPath)
                         .andChildContext(child)
@@ -336,20 +345,12 @@ define('com.pamarin.core.page.ContextMapping', [
                 }, this);
             },
             /** 
-             * @param {Array[String]} arr
-             * @returns {Array[String]}
-             */
-            removeQuerystring: function(arr) {
-                var path = Urls.removeQuerystring(arr.join(SLASH));
-                return StringUtils.split(path, SLASH);
-            },
-            /** 
              * @param {Number} index
              * @param {Array[String]} arr
              * @param {Function} callback
              */
             detect: function(index, arr, callback) {
-                arr = this.removeQuerystring(arr);
+                arr = pathArrayOnly(arr);
                 var notFound = this.contextWalking(arr, function(tmpl, mapping, id) {
                     var name = this.buildContextName(tmpl, mapping);
                     this.context_ = this.buildContext(
@@ -404,7 +405,7 @@ define('com.pamarin.core.page.ContextMapping', [
                         cx.mapping,
                         cx.tmpl
                         );
-                
+
                 var name = cx.name + location.search;
                 var reload = index === this.getStartIndex()
                         || name !== this.lastContextName_;
@@ -416,7 +417,7 @@ define('com.pamarin.core.page.ContextMapping', [
                 this.lastContextName_ = name;
             }
         };
-    })());
+    })(window.location));
 
 
 
