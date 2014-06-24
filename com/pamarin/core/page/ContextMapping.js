@@ -336,25 +336,35 @@ define('com.pamarin.core.page.ContextMapping', [
                 }, this);
             },
             /** 
+             * @param {Array[String]} arr
+             * @returns {Array[String]}
+             */
+            removeQuerystring: function(arr) {
+                var path = Urls.removeQuerystring(arr.join(SLASH));
+                return StringUtils.split(path, SLASH);
+            },
+            /** 
              * @param {Number} index
              * @param {Array[String]} arr
              * @param {Function} callback
              */
             detect: function(index, arr, callback) {
-                var fail = this.contextWalking(arr, function(tmpl, mapping, id) {
-                    this.lastContextName_ = this.buildContextName(tmpl, mapping);
+                arr = this.removeQuerystring(arr);
+                var notFound = this.contextWalking(arr, function(tmpl, mapping, id) {
+                    var name = this.buildContextName(tmpl, mapping);
                     this.context_ = this.buildContext(
                             id,
-                            this.lastContextName_,
+                            name,
                             mapping,
                             tmpl
                             );
 
                     callback && callback(this.context_);
+                    this.lastContextName_ = name + location.search;
                     return false;
                 });
 
-                if (fail) {
+                if (notFound) {
                     this.otherDetect(index, arr, callback);
                 }
             },
@@ -363,11 +373,17 @@ define('com.pamarin.core.page.ContextMapping', [
              * @param {Array[String]} arr
              */
             defaultContext: function(rs, arr) {
-                arr = arr.slice(0, this.getStartIndex() + this.DEFAULT_SLICE_SIZE_);
+                var start = 0;
+                var end = this.getStartIndex() + this.DEFAULT_SLICE_SIZE_;
+                arr = arr.slice(start, end);
+
                 rs.id = pathOnly(arr.join(SLASH));
                 rs.name = rs.id[0] === SLASH ? rs.id : SLASH + rs.id;
                 rs.mapping = {};
-                rs.tmpl = {stringArray: arr, string: SLASH + rs.name};
+                rs.tmpl = {
+                    stringArray: arr,
+                    string: SLASH + rs.name
+                };
 
                 return rs;
             },
@@ -388,15 +404,16 @@ define('com.pamarin.core.page.ContextMapping', [
                         rs.mapping,
                         rs.tmpl
                         );
-
+                
+                var name = rs.name + location.search;
                 var reload = index === this.getStartIndex()
-                        || rs.name !== this.lastContextName_;
+                        || name !== this.lastContextName_;
 
                 if (reload) {
                     callback && callback(this.context_);
                 }
 
-                this.lastContextName_ = rs.name;
+                this.lastContextName_ = name;
             }
         };
     })());
