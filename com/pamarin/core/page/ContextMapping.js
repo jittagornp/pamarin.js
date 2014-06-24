@@ -58,7 +58,9 @@ define('com.pamarin.core.page.ContextMapping', [
                 this.mappingName_ = name || this.DEFAULT_MAPPING_NAME_;
                 this.contextMapping_ = mapping;
                 this.childName_ = childName || this.DEFAULT_CHILD_NAME_;
-                this.startIndex_ = index_opt || this.DEFAULT_START_INDEX_;
+                this.startIndex_ = Types.isNumber(index_opt)
+                        ? index_opt
+                        : this.DEFAULT_START_INDEX_;
             },
             /**
              * @param {Object} template
@@ -189,8 +191,12 @@ define('com.pamarin.core.page.ContextMapping', [
              * @returns {String}
              */
             buildContextPath: function(template, mapping, offset, slice) {
-                var start_opt = this.parentContext_ ? this.parentContext_.getOffset() : undefined;
+                var start_opt = this.parentContext_
+                        ? this.parentContext_.getOffset()
+                        : undefined;
+
                 var end_opt = offset + slice;
+
                 return SLASH + this.buildUrl(template, mapping, start_opt, end_opt);
             },
             /**
@@ -302,8 +308,11 @@ define('com.pamarin.core.page.ContextMapping', [
                         rs.mapping = mapping;
                     }
                 }, this.addContextaul);
-                
-                rs.name = this.buildContextName(rs.tmpl, rs.mapping);
+
+                if (rs.id) {
+                    rs.name = this.buildContextName(rs.tmpl, rs.mapping);
+                }
+
                 return rs;
             },
             /**
@@ -349,36 +358,45 @@ define('com.pamarin.core.page.ContextMapping', [
                     this.otherDetect(index, arr, callback);
                 }
             },
+            /**
+             * @param {Object} rs
+             * @param {Array[String]} arr
+             */
+            defaultContext: function(rs, arr) {
+                arr = arr.slice(0, this.getStartIndex() + this.DEFAULT_SLICE_SIZE_);
+                rs.id = pathOnly(arr.join(SLASH));
+                rs.name = rs.id[0] === SLASH ? rs.id : SLASH + rs.id;
+                rs.mapping = {};
+                rs.tmpl = {stringArray: arr, string: SLASH + rs.name};
+
+                return rs;
+            },
             /** 
              * @param {Number} index
              * @param {Array[String]} arr
              * @param {Function} callback
              */
             otherDetect: function(index, arr, callback) {
-                var obj = this.findByContextaul(arr);
-                if (!obj.name) {
-                    arr = arr.slice(0, this.getStartIndex() + this.DEFAULT_SLICE_SIZE_);
-                    obj.id = pathOnly(arr.join(SLASH));
-                    obj.name = obj.id[0] === SLASH ? obj.id : SLASH + obj.id;
-                    obj.mapping = {};
-                    obj.tmpl = {stringArray: arr, string: SLASH + obj.name};
+                var rs = this.findByContextaul(arr);
+                if (!rs.name) {
+                    rs = this.defaultContext(rs, arr);
                 }
 
                 this.context_ = this.buildContext(
-                        obj.id,
-                        obj.name,
-                        obj.mapping,
-                        obj.tmpl
+                        rs.id,
+                        rs.name,
+                        rs.mapping,
+                        rs.tmpl
                         );
 
-                var foceReload = index === this.getStartIndex()
-                        || obj.name !== this.lastContextName_;
+                var reload = index === this.getStartIndex()
+                        || rs.name !== this.lastContextName_;
 
-                if (foceReload) {
+                if (reload) {
                     callback && callback(this.context_);
                 }
 
-                this.lastContextName_ = obj.name;
+                this.lastContextName_ = rs.name;
             }
         };
     })());
