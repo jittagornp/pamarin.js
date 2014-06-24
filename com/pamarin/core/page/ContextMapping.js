@@ -300,20 +300,20 @@ define('com.pamarin.core.page.ContextMapping', [
              * @returns {String}
              */
             findByContextaul: function(arr) {
-                var rs = {};
+                var cx = {};
                 this.contextWalking(arr, function(tmpl, mapping, id) {
-                    if (!rs.tmpl || rs.tmpl.format.length < tmpl.format.length) {
-                        rs.id = id;
-                        rs.tmpl = tmpl;
-                        rs.mapping = mapping;
+                    if (!cx.tmpl || cx.tmpl.format.length < tmpl.format.length) {
+                        cx.id = id;
+                        cx.tmpl = tmpl;
+                        cx.mapping = mapping;
                     }
                 }, this.addContextaul);
 
-                if (rs.id) {
-                    rs.name = this.buildContextName(rs.tmpl, rs.mapping);
+                if (cx.id) {
+                    cx.name = this.buildContextName(cx.tmpl, cx.mapping);
                 }
 
-                return rs;
+                return cx;
             },
             /**
              * @param {Array[String]} arr
@@ -369,23 +369,23 @@ define('com.pamarin.core.page.ContextMapping', [
                 }
             },
             /**
-             * @param {Object} rs
+             * @param {Object} cx
              * @param {Array[String]} arr
              */
-            defaultContext: function(rs, arr) {
+            defaultContext: function(cx, arr) {
                 var start = 0;
                 var end = this.getStartIndex() + this.DEFAULT_SLICE_SIZE_;
                 arr = arr.slice(start, end);
 
-                rs.id = pathOnly(arr.join(SLASH));
-                rs.name = rs.id[0] === SLASH ? rs.id : SLASH + rs.id;
-                rs.mapping = {};
-                rs.tmpl = {
+                cx.id = pathOnly(arr.join(SLASH));
+                cx.name = cx.id[0] === SLASH ? cx.id : SLASH + cx.id;
+                cx.mapping = {};
+                cx.tmpl = {
                     stringArray: arr,
-                    string: SLASH + rs.name
+                    string: SLASH + cx.name
                 };
 
-                return rs;
+                return cx;
             },
             /** 
              * @param {Number} index
@@ -393,19 +393,19 @@ define('com.pamarin.core.page.ContextMapping', [
              * @param {Function} callback
              */
             otherDetect: function(index, arr, callback) {
-                var rs = this.findByContextaul(arr);
-                if (!rs.name) {
-                    rs = this.defaultContext(rs, arr);
+                var cx = this.findByContextaul(arr);
+                if (!cx.name) {
+                    cx = this.defaultContext(cx, arr);
                 }
 
                 this.context_ = this.buildContext(
-                        rs.id,
-                        rs.name,
-                        rs.mapping,
-                        rs.tmpl
+                        cx.id,
+                        cx.name,
+                        cx.mapping,
+                        cx.tmpl
                         );
                 
-                var name = rs.name + location.search;
+                var name = cx.name + location.search;
                 var reload = index === this.getStartIndex()
                         || name !== this.lastContextName_;
 
