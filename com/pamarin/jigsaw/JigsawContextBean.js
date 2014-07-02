@@ -16,7 +16,8 @@ define('com.pamarin.jigsaw.JigsawContextBean', [
             CONTEXT_SCOPED: 'context',
             PAGE_SCOPED: 'page',
             TAB_SCOPED: 'tab',
-            SECTION_SCOPED: 'section'
+            SECTION_SCOPED: 'section',
+            SCOPEDS: ['page', 'tab', 'section']
         },
         /**/
         variable: {
