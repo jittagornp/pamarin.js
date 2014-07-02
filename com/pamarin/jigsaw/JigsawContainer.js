@@ -29,6 +29,12 @@ define('com.pamarin.jigsaw.JigsawContainer', [
         var TAB_SCOPED = JigsawContextBean.constant('TAB_SCOPED');
         var SECTION_SCOPED = JigsawContextBean.constant('SECTION_SCOPED');
 
+        var CONTEXT_STATE_ATTRIBUTE = 'data-state';
+        var contextState = {
+            LOADED: 'loaded',
+            UNLOAD: 'unload'
+        };
+
         var started = false;
 
         return {
@@ -114,11 +120,11 @@ define('com.pamarin.jigsaw.JigsawContainer', [
                     return;
                 }
 
-                var contextLoaded = $context.attr('data-state') === 'loaded';
+                var contextLoaded = $context.attr(CONTEXT_STATE_ATTRIBUTE) === contextState.LOADED;
                 if (contextLoaded) {
                     this.jigsawManager_.startControllerByScoped(contextScoped);
 
-                    $context.attr('data-state', 'unload');
+                    $context.attr(CONTEXT_STATE_ATTRIBUTE, contextState.UNLOAD);
                     this.popQueue(contextScoped);
                     this.started_ = true;
                     this.log(contextScoped, contextBean);
