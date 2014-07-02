@@ -81,10 +81,10 @@ define('com.pamarin.jigsaw.JigsawContainer', [
              * @param {String} loadPath 
              */
             log: function(contextScoped, contextBean, loadPath) {
-                LOG.debug('scoped --> {}', contextScoped);
+                LOG.debug('contextScoped --> {}', contextScoped);
                 loadPath && LOG.debug('loadPath --> {}', loadPath);
                 LOG.debug('contextBean --> {}', contextBean);
-                LOG.debug('callerQueue --> {}', this.contextQueue_);
+                LOG.debug('contextQueue --> {}', this.contextQueue_);
             },
             /**
              * @param {ContextBean} contextBean
@@ -115,7 +115,6 @@ define('com.pamarin.jigsaw.JigsawContainer', [
              * @param {ContextBean} contextBean
              */
             startController: function(contextScoped, contextBean) {
-                var that = this;
                 var scopedName = '[' + CONTEXT_SCOPED_ATTRIBUTE + '=' + contextScoped + ']';
                 var $context = $(scopedName);
                 var hasContext = $context.length > 0;
@@ -138,7 +137,17 @@ define('com.pamarin.jigsaw.JigsawContainer', [
                     return;
                 }
 
-                //lazy load context environment
+                this.lazyLoadContext(scopedName, contextScoped, contextBean);
+            },
+            /**
+             * @private
+             * 
+             * @param {String} scopedName 
+             * @param {String} contextScoped
+             * @param {ContextBean} contextBean
+             */
+            lazyLoadContext: function(scopedName, contextScoped, contextBean) {
+                var that = this;
                 var loadPath = this.generatePath(contextBean);
                 JigsawLoader.load(scopedName, loadPath, function() {
                     that.jigsawManager_.startControllerByScoped(contextScoped);
