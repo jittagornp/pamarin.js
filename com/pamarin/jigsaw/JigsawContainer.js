@@ -42,7 +42,7 @@ define('com.pamarin.jigsaw.JigsawContainer', [
             /**/
             variable: {
                 contextQueue_: null,
-                started_: true,
+                contextReady_: true,
                 pageContext_: null,
                 jigsawManager_: null
             },
@@ -122,7 +122,7 @@ define('com.pamarin.jigsaw.JigsawContainer', [
 
                 if (!hasContext) {
                     this.popQueue(contextScoped);
-                    this.started_ = true;
+                    this.contextReady_ = true;
                     this.log(contextScoped, contextBean);
                     return;
                 }
@@ -133,7 +133,7 @@ define('com.pamarin.jigsaw.JigsawContainer', [
 
                     $context.attr(CONTEXT_STATE_ATTRIBUTE, contextState.UNLOAD);
                     this.popQueue(contextScoped);
-                    this.started_ = true;
+                    this.contextReady_ = true;
                     this.log(contextScoped, contextBean);
                     return;
                 }
@@ -144,14 +144,14 @@ define('com.pamarin.jigsaw.JigsawContainer', [
                     that.jigsawManager_.startControllerByScoped(contextScoped);
                     var ctx = that.popQueue(contextScoped);
                     if (!ctx) {
-                        that.started_ = true;
+                        that.contextReady_ = true;
                         return;
                     }
 
                     that.startController(ctx.scoped, ctx.context);
                 });
 
-                this.started_ = false;
+                this.contextReady_ = false;
                 this.log(contextScoped, contextBean, loadPath);
             },
             /**
@@ -162,7 +162,7 @@ define('com.pamarin.jigsaw.JigsawContainer', [
              */
             restartController: function(contextScoped, contextBean) {
                 this.jigsawManager_.stopControllerByScoped(contextScoped);
-                if (this.started_) {
+                if (this.contextReady_) {
                     this.startController(contextScoped, contextBean);
                     return;
                 }
