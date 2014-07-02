@@ -74,6 +74,8 @@ define('com.pamarin.jigsaw.JigsawContainer', [
                 return querystring;
             },
             /**
+             * @private
+             * 
              * @param {String} contextScoped
              * @param {ContextBean} contextBean
              * @param {String} loadPath 
@@ -94,6 +96,8 @@ define('com.pamarin.jigsaw.JigsawContainer', [
                         + this.concatQuerystring(context);
             },
             /**
+             * @private
+             * 
              * @param {String} scoped
              * @param {Object} 
              */
@@ -105,6 +109,8 @@ define('com.pamarin.jigsaw.JigsawContainer', [
                 return ctx;
             },
             /**
+             * @private
+             * 
              * @param {String} contextScoped
              * @param {ContextBean} contextBean
              */
@@ -149,6 +155,8 @@ define('com.pamarin.jigsaw.JigsawContainer', [
                 this.log(contextScoped, contextBean, loadPath);
             },
             /**
+             * @private
+             * 
              * @param {String} contextScoped
              * @param {ContextBean} contextBean
              */
@@ -162,6 +170,8 @@ define('com.pamarin.jigsaw.JigsawContainer', [
                 this.waitInQueue(contextScoped, contextBean);
             },
             /**
+             * @private
+             * 
              * @param {String} contextScoped
              * @param {ContextBean} contextBean
              */
@@ -171,7 +181,9 @@ define('com.pamarin.jigsaw.JigsawContainer', [
                     context: contextBean
                 };
             },
-            /**/
+            /**
+             * for start container
+             */
             start: function() {
                 if (!started) {
                     started = true;
