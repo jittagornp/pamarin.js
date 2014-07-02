@@ -30,6 +30,7 @@ define('com.pamarin.jigsaw.JigsawContainer', [
         var SECTION_SCOPED = JigsawContextBean.constant('SECTION_SCOPED');
 
         var CONTEXT_STATE_ATTRIBUTE = 'data-state';
+        var CONTEXT_SCOPED_ATTRIBUTE = 'data-scoped';
         var contextState = {
             LOADED: 'loaded',
             UNLOAD: 'unload'
@@ -109,7 +110,7 @@ define('com.pamarin.jigsaw.JigsawContainer', [
              */
             startController: function(contextScoped, contextBean) {
                 var that = this;
-                var scopedName = '[data-scoped=' + contextScoped + ']';
+                var scopedName = '[' + CONTEXT_SCOPED_ATTRIBUTE + '=' + contextScoped + ']';
                 var $context = $(scopedName);
                 var hasContext = $context.length > 0;
 
@@ -172,11 +173,10 @@ define('com.pamarin.jigsaw.JigsawContainer', [
             },
             /**/
             start: function() {
-                var that = this;
-                this.contextQueue_ = [];
-
                 if (!started) {
                     started = true;
+                    var that = this;
+                    this.contextQueue_ = [];
 
                     this.jigsawManager_ = JigsawManager.getInstance();
                     this.pageContext_ = PageContext.getInstance();
