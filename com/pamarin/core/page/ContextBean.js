@@ -16,15 +16,21 @@ define('com.pamarin.core.page.ContextBean', [
         variable: {
             id_: null,
             name_: null,
+            mappingName_: null,
             pattern_: null,
+            rootOffset_: 1000,
             offset_: 0,
             slice_: 1,
             param_: null,
             querystring_: null,
-            uriPath_: null,
+            fullContextPath_: null,
             contextPath_: null,
             additionalParam_: null,
-            childContext_: null
+            childContext_: null,
+            parent_: null,
+            child_: null,
+            defaultChildName_: null,
+            childContextAttribute_: null
         },
         /** 
          * @param {String} id
@@ -59,6 +65,18 @@ define('com.pamarin.core.page.ContextBean', [
         /**
          * @returns {String}
          */
+        getMappingName: function() {
+            return this.mappingName_;
+        },
+        /**
+         * @param {String} name
+         */
+        setMappingName: function(name) {
+            this.mappingName_ = name;
+        },
+        /**
+         * @returns {String}
+         */
         getPattern: function() {
             return this.pattern_;
         },
@@ -67,6 +85,18 @@ define('com.pamarin.core.page.ContextBean', [
          */
         setPattern: function(pattern) {
             this.pattern_ = pattern;
+        },
+        /**
+         * @param {Number} offset
+         */
+        setRootOffset: function(offset) {
+            this.rootOffset_ = offset;
+        },
+        /**
+         * @returns {Number} 
+         */
+        getRootOffset: function() {
+            return this.rootOffset_;
         },
         /**
          * @returns {Number} 
@@ -119,14 +149,14 @@ define('com.pamarin.core.page.ContextBean', [
         /**
          * @returns {String}
          */
-        getUriPath: function() {
-            return this.uriPath_;
+        getFullContextPath: function() {
+            return this.fullContextPath_;
         },
         /**
          * @param {String} uri
          */
-        setUriPath: function(uri) {
-            this.uriPath_ = uri;
+        setFullContextPath: function(uri) {
+            this.fullContextPath_ = uri;
         },
         /**
          * @returns {String}
@@ -170,6 +200,59 @@ define('com.pamarin.core.page.ContextBean', [
          */
         setAdditionalParam: function(param) {
             this.additionalParam_ = param;
+        },
+        /**
+         * @param {ContextBean} parent
+         */
+        setParent: function(parent) {
+            this.parent_ = parent;
+        },
+        /**
+         * @returns {ContextBean}
+         */
+        getParent: function() {
+            return this.parent_;
+        },
+        /**
+         * @param {ContextBean} child
+         */
+        setChild: function(child) {
+            this.child_ = child;
+        },
+        /**
+         * @returns {ContextBean}
+         */
+        getChild: function() {
+            return this.child_;
+        },
+        /**
+         * @param {String} name
+         */
+        setDefaultChildName: function(name) {
+            this.defaultChildName_ = name;
+        },
+        /**
+         * @returns {String}
+         */
+        getDefaultChildName: function() {
+            var childContext = this.getChildContext();
+            if (childContext && childContext.default) {
+                this.defaultChildName_ = childContext.default;
+            }
+
+            return this.defaultChildName_;
+        },
+        /**
+         * @param {String} attr
+         */
+        setChildContextAttribute: function(attr) {
+            this.childContextAttribute_ = attr;
+        },
+        /**
+         * @returns {String}
+         */
+        getChildContextAttribute: function() {
+            return this.childContextAttribute_;
         },
         /**
          * @param {ContextBean} obj 

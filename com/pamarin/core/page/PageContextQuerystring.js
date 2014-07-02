@@ -20,6 +20,10 @@ define('com.pamarin.core.page.PageContextQuerystring', [
 
         function build(qstring, arr, param) {
             var concat = function(key, value) {
+                if(qstring.indexOf(key + '=' + value) !== -1){
+                    return;
+                }
+                
                 qstring = qstring + toVal(qstring, '&') + key + '=' + value;
             };
 

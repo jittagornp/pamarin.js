@@ -47,7 +47,8 @@ define('com.pamarin.core.page.ContextMapping', [
             /**/
             variable: {
                 DEFAULT_MAPPING_NAME_: 'context',
-                DEFAULT_CHILD_NAME_: 'child',
+                DEFAULT_CHILD_ATTRIBUTE_: 'child',
+                DEFAULT_CHILD_NAME_: 'home',
                 DEFAULT_START_INDEX_: 0,
                 DEFAULT_SLICE_SIZE_: 1,
                 mappingName_: null,
@@ -56,17 +57,17 @@ define('com.pamarin.core.page.ContextMapping', [
                 context_: null,
                 lastContextName_: null,
                 startIndex_: null,
-                childName_: null
+                childAttribute_: null
             },
             /**
              * @param {String} name
              * @param {Object} mapping
-             * @param {String} childName
+             * @param {String} childAttr
              */
-            constructor: function(name, mapping, childName, index_opt) {
+            constructor: function(name, mapping, childAttr, index_opt) {
                 this.mappingName_ = name || this.DEFAULT_MAPPING_NAME_;
                 this.contextMapping_ = mapping;
-                this.childName_ = childName || this.DEFAULT_CHILD_NAME_;
+                this.childAttribute_ = childAttr || this.DEFAULT_CHILD_ATTRIBUTE_;
                 this.startIndex_ = Types.isNumber(index_opt)
                         ? index_opt
                         : this.DEFAULT_START_INDEX_;
@@ -92,7 +93,7 @@ define('com.pamarin.core.page.ContextMapping', [
 
                 var end = Types.isNumber(end_opt)
                         ? end_opt
-                        : (start + this.toMappingSlice(mapping.slice));
+                        : (this.toMappingOffset(mapping.offset) + this.toMappingSlice(mapping.slice));
 
                 return template
                         .stringArray
@@ -201,7 +202,7 @@ define('com.pamarin.core.page.ContextMapping', [
              */
             buildContextPath: function(template, mapping, offset, slice) {
                 var start_opt = this.parentContext_
-                        ? this.parentContext_.getOffset()
+                        ? this.parentContext_.getRootOffset()
                         : undefined;
 
                 var end_opt = offset + slice;
@@ -216,11 +217,51 @@ define('com.pamarin.core.page.ContextMapping', [
             buildFullContextPath: function(template, mapping) {
                 return SLASH + this.buildUrl(template, mapping, 0);
             },
-            /**/
+            /**
+             * @param {String} name
+             * @param {Number} offset
+             * @param {Number} slice
+             * @returns {String}
+             */
             buildName: function(name, offset, slice) {
                 var arr = StringUtils.split(name, SLASH);
                 arr = arr.slice(offset, offset + slice);
                 return arr.join(SLASH);
+            },
+            /**/
+            buildRootOffset: function(offset) {
+                if (this.parentContext_) {
+                    offset = this.parentContext_.getOffset() < offset
+                            ? this.parentContext_.getOffset()
+                            : offset;
+
+                    offset = this.parentContext_.getRootOffset() < offset
+                            ? this.parentContext_.getRootOffset()
+                            : offset;
+                }
+
+                return offset;
+            },
+            /**/
+            buildDefaultName: function() {
+                if (this.parentContext_) {
+                    return this.parentContext_.getDefaultChildName();
+                }
+
+                return this.DEFAULT_CHILD_NAME_;
+            },
+            /**/
+            replaceFormatName : function(format, name){
+                return format.replace('{[' + this.mappingName_ + ']}', name);
+            },
+            /**/
+            rewriteTemplate: function(template, defaultName) {
+                template.string = this.replaceFormatName(template.string, defaultName);
+                Array.forEachIndex(template.stringArray, function(item, index){
+                    template.stringArray[index] = this.replaceFormatName(item, defaultName);
+                }, this);
+                
+                return template;
             },
             /**
              * @param {String} id
@@ -230,13 +271,19 @@ define('com.pamarin.core.page.ContextMapping', [
              * @returns {ContextBean}
              */
             buildContext: function(id, name, mapping, template) {
-                var child = mapping[this.childName_];
+                var child = mapping[this.childAttribute_];
                 if (child && child.reference) {
                     //reference to other config.
                     child = Namespace.getValue(child.reference, this.contextMapping_);
                 }
 
+                var defaultName = this.buildDefaultName();
+                id = this.replaceFormatName(id, defaultName);
+                name = this.replaceFormatName(name, defaultName);
+                template = this.rewriteTemplate(template, defaultName);
+
                 var offset = this.toMappingOffset(mapping.offset);
+                var rootOffset = this.buildRootOffset(offset);
                 var slice = this.toMappingSlice(mapping.slice);
 
                 var fullContextPath = name;
@@ -248,15 +295,20 @@ define('com.pamarin.core.page.ContextMapping', [
 
                 return ContextBuilder.buildContext(id)
                         .andName(name)
+                        .andMappingName(this.mappingName_)
                         .andPattern(pattern)
                         .andOffset(offset)
+                        .andRootOffset(rootOffset)
                         .andSlice(slice)
                         .andParam(param)
                         .andQuerystring(qstr)
                         .andFullContextPath(fullContextPath)
                         .andAdditionalParam(mapping.additionalParam)
                         .andContextPath(contextPath)
+                        .andParent(this.parentContext_)
                         .andChildContext(child)
+                        .andDefaultChildName(this.DEFAULT_CHILD_NAME_)
+                        .andChildContextAttribute(this.childAttribute_)
                         .build();
             },
             /**
@@ -383,7 +435,7 @@ define('com.pamarin.core.page.ContextMapping', [
                 cx.mapping = {};
                 cx.tmpl = {
                     stringArray: arr,
-                    string: SLASH + cx.name
+                    string: cx.name
                 };
 
                 return cx;

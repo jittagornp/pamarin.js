@@ -18,6 +18,8 @@ define('com.pamarin.core.util.StringUtils', [
                 .replace(/\@/g, '\\@')
                 .replace(/\?/g, '\\?')
                 .replace(/\$/g, '\\$')
+                .replace(/\&/g, '\\&')
+                .replace(/\-/g, '\\-')
                 .replace(/\{/g, '\\{')
                 .replace(/\^/g, '\\^')
                 .replace(/\}/g, '\\}')

@@ -8,8 +8,9 @@ define('com.pamarin.core.page.ContextMappingAdapter', [
     'com.pamarin.core.lang.Object',
     'com.pamarin.core.page.ContextMapping',
     'com.pamarin.core.util.StringUtils',
-    'com.pamarin.core.util.Urls'
-], function(module, Class, Object, ContextMapping, StringUtils, Urls) {
+    'com.pamarin.core.util.Urls',
+    'com.pamarin.core.util.Types'
+], function(module, Class, Object, ContextMapping, StringUtils, Urls, Types) {
 
     /**
      * @class ContextMappingAdapter
@@ -21,11 +22,10 @@ define('com.pamarin.core.page.ContextMappingAdapter', [
         return {
             /**/
             variable: {
-                DEFAULT_CONTEXT_NAME_: 'home',
                 DEFAULT_MAPPING_NAME_: 'context',
                 indexChanged_: null,
                 currentPath_: null,
-                mapped_: false
+                defaultChildName_: null
             },
             /**
              * @param {Object} settings = {
@@ -36,7 +36,7 @@ define('com.pamarin.core.page.ContextMappingAdapter', [
              * };
              */
             constructor: function(settings) {
-                this.currentPath_ = settings.currentPath || Urls.getPathArray();
+                this.currentPath_ = this.getInitialPath(settings.currentPath);
 
                 this.__super__.constructor.call(
                         this,
@@ -45,6 +45,23 @@ define('com.pamarin.core.page.ContextMappingAdapter', [
                         settings.childContextAttribute,
                         this.indexChanged_
                         );
+            },
+            /**
+             * @param {Array[String]} currentPathArray
+             * @returns {Array[String]}
+             */
+            getInitialPath: function(currentPathArray) {
+                var defaultPathArray = Urls.getPathArray();
+                if (currentPathArray) {
+                    var pathArray = StringUtils.split(currentPathArray, SLASH);
+                    if (pathArray.length < defaultPathArray.length) {
+                        pathArray = defaultPathArray;
+                    }
+
+                    return pathArray;
+                }
+
+                return defaultPathArray;
             },
             /**
              * @param {ContextBean} parentContext
@@ -61,24 +78,33 @@ define('com.pamarin.core.page.ContextMappingAdapter', [
                     }
 
                     this.indexChanged_ = parentContext.getOffset() + parentContext.getSlice();
-                    if (!this.currentPath_[this.indexChanged_]) {
-                        this.currentPath_[this.indexChanged_] = this.DEFAULT_CONTEXT_NAME_;
-                    }
                 }
 
                 return this.transformContextMapping(context);
+            },
+            /**/
+            checkPath: function(pathArray) {
+                if (this.parentContext_) {
+                    var length = this.parentContext_.getOffset()
+                            + this.parentContext_.getSlice();
+
+                    for (var i = 0; i <= length; i++) {
+                        if (!pathArray[i]) {
+                            pathArray[i] = '{[' + this.mappingName_ + ']}';
+                        }
+                    }
+                }
+                return pathArray;
             },
             /**
              * @param {Number} index
              * @param {Array[String]} pathArray
              */
             trigChange: function(index, pathArray) {
-                index = this.indexChanged_ || index;
-                pathArray = this.currentPath_ || pathArray;
+                index = Types.isNumber(index) ? index : this.indexChanged_;
 
-                this.detect(index, pathArray, this.reloadContext);
-                this.indexChanged_ = null;
-                this.currentPath_ = null;
+                pathArray = this.checkPath(pathArray || this.currentPath_);
+                this.detect(index, pathArray, this.onReloadContext);
             },
             /**
              * @param {Number} slice
@@ -128,7 +154,7 @@ define('com.pamarin.core.page.ContextMappingAdapter', [
                 return mapping;
             },
             /**/
-            reloadContext: function() {
+            onReloadContext: function() {
                 //implements your own.
             }
         };

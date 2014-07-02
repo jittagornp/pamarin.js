@@ -26,7 +26,7 @@ define('com.pamarin.core.page.ContextBuilder', [
         /**/
         static: {
             /**/
-            buildFromId: function(id) {
+            buildContext: function(id) {
                 return new ContextBuilder(id);
             }
         },
@@ -37,6 +37,17 @@ define('com.pamarin.core.page.ContextBuilder', [
         andName: function(name) {
             if (name) {
                 this.ctx_.setName(name);
+            }
+
+            return this;
+        },
+        /** 
+         * @param {String} name
+         * @returns {ContextBuilder}
+         */
+        andMappingName: function(name) {
+            if (name) {
+                this.ctx_.setMappingName(name);
             }
 
             return this;
@@ -59,6 +70,17 @@ define('com.pamarin.core.page.ContextBuilder', [
         andOffset: function(offset) {
             if (Types.isNumber(offset)) {
                 this.ctx_.setOffset(offset);
+            }
+
+            return this;
+        },
+        /**
+         * @param {Number} offset
+         * @returns {ContextBuilder}
+         */
+        andRootOffset: function(offset) {
+            if (Types.isNumber(offset)) {
+                this.ctx_.setRootOffset(offset);
             }
 
             return this;
@@ -101,23 +123,23 @@ define('com.pamarin.core.page.ContextBuilder', [
             return this;
         },
         /** 
-         * @param {String} uri
+         * @param {String} path
          * @returns {ContextBuilder}
          */
-        andUriPath: function(uri) {
-            if (uri) {
-                this.ctx_.setUriPath(uri);
+        andFullContextPath: function(path) {
+            if (path) {
+                this.ctx_.setFullContextPath(path);
             }
 
             return this;
         },
         /** 
-         * @param {String} url
+         * @param {String} path
          * @returns {ContextBuilder}
          */
-        andContextPath: function(url) {
-            if (url) {
-                this.ctx_.setContextPath(url);
+        andContextPath: function(path) {
+            if (path) {
+                this.ctx_.setContextPath(path);
             }
 
             return this;
@@ -140,6 +162,39 @@ define('com.pamarin.core.page.ContextBuilder', [
         andChildContext: function(tab) {
             if (tab) {
                 this.ctx_.setChildContext(tab);
+            }
+
+            return this;
+        },
+        /**
+         * @param {ContextBean} context
+         * @returns {ContextBuilder}
+         */
+        andParent: function(context) {
+            if (context) {
+                this.ctx_.setParent(context);
+            }
+
+            return this;
+        },
+        /**
+         * @param {String} name
+         * @returns {ContextBuilder}
+         */
+        andDefaultChildName: function(name) {
+            if (name) {
+                this.ctx_.setDefaultChildName(name);
+            }
+
+            return this;
+        },
+        /**
+         * @param {String} attr
+         * @returns {ContextBuilder}
+         */
+        andChildContextAttribute: function(attr) {
+            if (attr) {
+                this.ctx_.setChildContextAttribute(attr);
             }
 
             return this;

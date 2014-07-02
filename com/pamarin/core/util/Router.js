@@ -5,7 +5,6 @@
 define('com.pamarin.core.util.Router', [
     'module',
     'com.pamarin.core.lang.Class',
-    'com.pamarin.core.lang.Array',
     'com.pamarin.core.context.ApplicationContext',
     'com.pamarin.core.util.Assert',
     'com.pamarin.core.util.Types',
@@ -13,7 +12,7 @@ define('com.pamarin.core.util.Router', [
     'com.pamarin.core.util.collection.ArrayList',
     'com.jquery.core.JQuery',
     'com.pamarin.core.util.PathTemplateParser'
-], function(module, Class, Array, ApplicationContext, Assert, Types, StringUtils, ArrayList, $, PathTemplateParser) {
+], function(module, Class, ApplicationContext, Assert, Types, StringUtils, ArrayList, $, PathTemplateParser) {
 
     /**
      * @class Router
@@ -33,12 +32,9 @@ define('com.pamarin.core.util.Router', [
         var PREFIX_HASH_LENGTH = PREFIX_HASH.length;
 
         var $window = $(window);
-        var $document = $(document);
         var callbacks = new ArrayList();
         var oldPath = getFullPathArray();
         var maxLevel = -1;
-        var startTime = (new Date()).getTime();
-        var RELOAD_MINUTE = 5;
 
         $window.bind('popstate', function() {
             pushState && listener();
@@ -48,15 +44,6 @@ define('com.pamarin.core.util.Router', [
         window.onhashchange = function() {
             !pushState && listener();
         };
-
-        function reloadPage() {
-            var endTime = (new Date()).getTime();
-            if ((endTime - startTime) > 1000 * 60 * RELOAD_MINUTE) {
-                return true;
-            }
-
-            return false;
-        }
 
         function onRouteAt(caller, index, newPath, oldPath) {
             if (caller.level === index) {
@@ -94,17 +81,6 @@ define('com.pamarin.core.util.Router', [
             }
         }
 
-//        function removeEvents(start, end) {
-//            for (var i = start; i < end; i++) {
-//                var clazz = 'evb' + '-' + i;
-//                var event = '.' + clazz;
-//
-//                $(event).off(event).removeClass(clazz);
-//                $window.off(event);
-//                $document.off(event);
-//            }
-//        }
-
         function listener() {
             var newPath = getFullPathArray();
             var length = (newPath.length > oldPath.length) ? newPath.length : oldPath.length;
@@ -112,11 +88,6 @@ define('com.pamarin.core.util.Router', [
             for (var index = 0; index < length; index++) {
                 if (oldPath[index] === newPath[index]) {
                     continue;
-                }
-
-                if (index === 0 && reloadPage()) {
-                    window.location.reload(true);
-                    return;
                 }
 
                 callbacks.forEachEntry(function(caller) {
@@ -152,6 +123,7 @@ define('com.pamarin.core.util.Router', [
 
             return paths;
         }
+        
 
         function getPath(link) {
             link = link || window.location.href;
