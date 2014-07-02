@@ -43,7 +43,6 @@ define('com.pamarin.jigsaw.JigsawContainer', [
             variable: {
                 contextQueue_: null,
                 contextReady_: true,
-                pageContext_: null,
                 jigsawManager_: null
             },
             /**/
@@ -200,17 +199,17 @@ define('com.pamarin.jigsaw.JigsawContainer', [
                     this.contextQueue_ = [];
 
                     this.jigsawManager_ = JigsawManager.getInstance();
-                    this.pageContext_ = PageContext.getInstance();
+                    var pageContext = PageContext.getInstance();
 
-                    this.pageContext_.addPageChangeListener(function(contextBean) {
+                    pageContext.addPageChangeListener(function(contextBean) {
                         that.restartController(PAGE_SCOPED, contextBean);
                     }, false);
 
-                    this.pageContext_.addTabChangeListener(function(contextBean) {
+                    pageContext.addTabChangeListener(function(contextBean) {
                         that.restartController(TAB_SCOPED, contextBean);
                     }, false);
 
-                    this.pageContext_.addSectionChangeListener(function(contextBean) {
+                    pageContext.addSectionChangeListener(function(contextBean) {
                         that.restartController(SECTION_SCOPED, contextBean);
                     }, false);
                 }
